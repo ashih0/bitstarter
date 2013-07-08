@@ -39,13 +39,9 @@ var assertFileExists = function(infile) {
     return instr;
 };
 
-var loadChecks = function(checksfile) {
-    return JSON.parse(fs.readFileSync(checksfile));
-};
-
-var checkHtmlFile = function(htmlfile, checksfile) {
-    $ = cheerio.load(fs.readFileSync(htmlfile));
-    var checks = loadChecks(checksfile).sort();
+var doChecks = function(checksfile, data) {
+    $ = cheerio.load(data);
+    var checks = JSON.parse(fs.readFileSync(checksfile)).sort();
     var out = {};
     for(var ii in checks) {
         var present = $(checks[ii]).length > 0;
@@ -53,23 +49,19 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     }
     var outJson = JSON.stringify(out, null, 4);
     console.log(outJson);
+};
+
+var checkHtmlFile = function(htmlfile, checksfile) {
+    doChecks(checksfile, fs.readFileSync(htmlfile));
 };
 
 var checkUrl = function(url, checksfile) {
     rest.get(url).on('complete', function(result) {
-    if (result instanceof Error) {
-	console.error('Error fetching URL: ' + util.format(result.message));
-        process.exit(1);
-    }
-    $ = cheerio.load(result);
-    var checks = loadChecks(checksfile).sort();
-    var out = {};
-    for(var ii in checks) {
-        var present = $(checks[ii]).length > 0;
-        out[checks[ii]] = present;
-    }
-    var outJson = JSON.stringify(out, null, 4);
-    console.log(outJson);
+	if (result instanceof Error) {
+	    console.error('Error fetching URL: ' + util.format(result.message));
+            process.exit(1);
+	}
+	doChecks(checksfile, result);
     });  
 };
 
