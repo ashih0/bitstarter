@@ -77,9 +77,14 @@ if(require.main == module) {
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
         .option('-u, --url <url>', 'URL to index.html', URL_DEFAULT)
         .parse(process.argv);
-    var checkJson = program.url != ""
-	? checkUrl(program.url, program.checks)
-	: checkHtmlFile(program.file, program.checks);
+    if(program.url!="" && program.file!=""){
+	console.error("please specify one of <html_file> or <url>");
+	process.exit(1);
+    }else if(program.url != ""){
+	checkUrl(program.url, program.checks);
+    }else{
+	checkHtmlFile(program.file, program.checks);
+    }
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
